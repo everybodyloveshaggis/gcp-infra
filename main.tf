@@ -20,7 +20,9 @@ terraform {
   }
 }
 
-data "google_client_config" "default" {}    
+data "google_client_config" "default" {}
+
+data "google_client_openid_userinfo" "terraform_sa" {}
 
 provider "helm" {
   kubernetes {
@@ -81,17 +83,29 @@ resource "google_project_service" "artifact_registry" {
   disable_on_destroy = false
 }
 
-# 4. Docker container registry (Artifact Registry)
+# 4. Grant the Terraform SA permission to create Artifact Registry repositories
+resource "google_project_iam_member" "terraform_sa_artifact_registry_admin" {
+  project = "project-fa63d718-a27d-4c5b-b6b"
+  role    = "roles/artifactregistry.admin"
+  member  = "serviceAccount:${data.google_client_openid_userinfo.terraform_sa.email}"
+
+  depends_on = [google_project_service.artifact_registry]
+}
+
+# 5. Docker container registry (Artifact Registry)
 resource "google_artifact_registry_repository" "docker" {
   location      = "europe-west2"
   repository_id = "docker"
   description   = "Docker container registry"
   format        = "DOCKER"
 
-  depends_on = [google_project_service.artifact_registry]
+  depends_on = [
+    google_project_service.artifact_registry,
+    google_project_iam_member.terraform_sa_artifact_registry_admin,
+  ]
 }
 
-# 5. Deploy ArgoCD using the Helm provider
+# 6. Deploy ArgoCD using the Helm provider
 resource "helm_release" "argocd" {
   name             = "argocd"
   repository       = "https://argoproj.github.io/argo-helm"
