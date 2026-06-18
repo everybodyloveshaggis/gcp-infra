@@ -75,7 +75,23 @@ resource "google_container_node_pool" "primary_nodes" {
   }
 }
 
-# 3. Deploy ArgoCD using the Helm provider
+# 3. Enable Artifact Registry API
+resource "google_project_service" "artifact_registry" {
+  service            = "artifactregistry.googleapis.com"
+  disable_on_destroy = false
+}
+
+# 4. Docker container registry (Artifact Registry)
+resource "google_artifact_registry_repository" "docker" {
+  location      = "europe-west2"
+  repository_id = "docker"
+  description   = "Docker container registry"
+  format        = "DOCKER"
+
+  depends_on = [google_project_service.artifact_registry]
+}
+
+# 5. Deploy ArgoCD using the Helm provider
 resource "helm_release" "argocd" {
   name             = "argocd"
   repository       = "https://argoproj.github.io/argo-helm"
