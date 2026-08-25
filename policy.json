@@ -1,0 +1,12 @@
+{
+  "bindings": [
+    {
+      "members": [
+        "principalSet://iam.googleapis.com/projects/110886577621/locations/global/workloadIdentityPools/tfc-pool/attribute.terraform_workspace_id/ws-PhuawxG17fUqpcja"
+      ],
+      "role": "roles/iam.workloadIdentityUser"
+    }
+  ],
+  "etag": "BwZZ51djP6E=",
+  "version": 1
+}

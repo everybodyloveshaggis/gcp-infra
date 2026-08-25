@@ -85,11 +85,9 @@ resource "google_project_service" "artifact_registry" {
 
 # 4. Grant the Terraform SA permission to create Artifact Registry repositories
 resource "google_project_iam_member" "terraform_sa_artifact_registry_admin" {
-  project = "project-fa63d718-a27d-4c5b-b6b"
+  project = var.project_id
   role    = "roles/artifactregistry.admin"
-  member  = "serviceAccount:${data.google_client_openid_userinfo.terraform_sa.email}"
-
-  depends_on = [google_project_service.artifact_registry]
+  member  = "serviceAccount:${var.gcp_service_account_email}"
 }
 
 # 5. Docker container registry (Artifact Registry)
